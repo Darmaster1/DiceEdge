@@ -296,5 +296,10 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`DiceEdge running at http://localhost:${PORT}`));
+const PORT = process.env.PORT || 8000; // Koyeb likes 8000 or 3000
+
+server.listen(PORT, () => {
+    console.log(`DiceEdge running on port ${PORT}`);
+});
+
+module.exports = server;
