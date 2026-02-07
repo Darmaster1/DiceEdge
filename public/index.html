@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dice Edge — Stake on 2–12</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1 class="logo">Dice<span>Edge</span></h1>
+      <p class="tagline">Stake on the sum. Roll the dice.</p>
+    </header>
+
+    <main>
+      <!-- Home -->
+      <section id="screen-home" class="screen active">
+        <div class="card home-card">
+          <h2>Create or join a game</h2>
+          <div class="tabs">
+            <button type="button" class="tab active" data-tab="create">Create game</button>
+            <button type="button" class="tab" data-tab="join">Join game</button>
+          </div>
+          <div id="panel-create" class="panel active">
+            <label>Your name</label>
+            <input type="text" id="create-name" placeholder="Host" maxlength="20" />
+            <div class="settings-section">
+              <h4>Game settings</h4>
+              <div class="settings-grid">
+                <label>Starting points</label>
+                <select id="create-starting-points">
+                  <option value="500">500</option>
+                  <option value="1000" selected>1000</option>
+                  <option value="2000">2000</option>
+                </select>
+                <label>Round timer</label>
+                <select id="create-use-timer">
+                  <option value="false">Off</option>
+                  <option value="true">On</option>
+                </select>
+                <label>Timer (sec)</label>
+                <input type="number" id="create-timer-sec" min="10" max="120" value="30" />
+                <label>Min bet</label>
+                <input type="number" id="create-bet-min" min="1" value="10" />
+                <label>Max bet</label>
+                <input type="number" id="create-bet-max" min="10" value="500" />
+                <label>Win condition</label>
+                <select id="create-win-condition">
+                  <option value="first_to_target">First to target</option>
+                  <option value="elimination">Last standing</option>
+                </select>
+                <label>Target points</label>
+                <input type="number" id="create-target" min="500" value="2000" />
+              </div>
+            </div>
+            <button type="button" id="btn-create" class="btn btn-primary">Create game</button>
+          </div>
+          <div id="panel-join" class="panel">
+            <div id="reconnect-prompt" class="reconnect-prompt hidden">
+              <p>Reconnect to <strong id="reconnect-code"></strong>?</p>
+              <button type="button" id="btn-reconnect" class="btn btn-ghost">Reconnect</button>
+            </div>
+            <label>Room code</label>
+            <input type="text" id="join-code" placeholder="e.g. ABC123" maxlength="6" autocomplete="off" />
+            <label>Your name</label>
+            <input type="text" id="join-name" placeholder="Your name" maxlength="20" />
+            <button type="button" id="btn-join" class="btn btn-primary">Join game</button>
+          </div>
+        </div>
+        <div class="payouts-preview">
+          <h3>Payouts (sum of 2 dice)</h3>
+          <div id="payouts-grid"></div>
+        </div>
+      </section>
+
+      <!-- Lobby -->
+      <section id="screen-lobby" class="screen">
+        <div class="card lobby-card">
+          <div class="room-info">
+            <span class="label">Room code</span>
+            <strong id="lobby-code" class="room-code"></strong>
+            <button type="button" id="btn-copy-code" class="btn btn-ghost" title="Copy">Copy</button>
+          </div>
+          <div class="your-color">
+            <label>Your color</label>
+            <div class="color-swatches" id="lobby-color-swatches"></div>
+          </div>
+          <h2>Players (<span id="lobby-count">0</span>)</h2>
+          <ul id="lobby-players" class="player-list"></ul>
+          <div class="lobby-actions">
+            <button type="button" id="btn-ready" class="btn btn-ghost">I'm ready</button>
+            <button type="button" id="btn-start" class="btn btn-primary">Start game</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Game -->
+      <section id="screen-game" class="screen">
+        <div class="game-header">
+          <div class="room-badge">Room <span id="game-code"></span></div>
+          <div class="round-badge">Round <span id="round-num">1</span></div>
+          <div id="round-timer" class="round-timer hidden"></div>
+          <button type="button" id="btn-leave-game" class="btn btn-ghost">Leave game</button>
+        </div>
+
+        <div class="game-layout">
+          <aside class="players-panel">
+            <h3>Players</h3>
+            <ul id="game-players" class="player-list compact"></ul>
+            <div class="history-panel">
+              <h3>Roll history</h3>
+              <ul id="history-list"></ul>
+            </div>
+          </aside>
+
+          <div class="game-center">
+            <div id="dice-area" class="dice-area">
+              <div class="dice-placeholder" id="dice-placeholder">
+                <span>Place your bet, then roll</span>
+              </div>
+              <div class="dice-result hidden" id="dice-result">
+                <div class="dice-rolling" id="dice-rolling">
+                  <div class="die rolling" id="die1">?</div>
+                  <div class="die rolling" id="die2">?</div>
+                </div>
+                <div class="dice-final hidden" id="dice-final">
+                  <div class="die" id="die1-final">?</div>
+                  <div class="die" id="die2-final">?</div>
+                </div>
+                <p class="sum-line">Sum = <strong id="roll-sum">0</strong></p>
+              </div>
+            </div>
+            <div id="round-summary" class="round-summary hidden"></div>
+            <div id="roll-results" class="roll-results hidden"></div>
+            <div id="reactions-bar" class="reactions-bar hidden">
+              <span class="reactions-label">Reactions:</span>
+              <span id="reactions-list"></span>
+            </div>
+            <div class="game-actions">
+              <button type="button" id="btn-roll" class="btn btn-accent btn-lg">Roll dice</button>
+              <button type="button" id="btn-next-round" class="btn btn-primary hidden">Next round</button>
+            </div>
+            <div id="game-over-banner" class="game-over-banner hidden">
+              <h2 id="game-over-text"></h2>
+              <button type="button" id="btn-back-lobby" class="btn btn-primary">Back to home</button>
+            </div>
+          </div>
+
+          <aside class="right-panel">
+            <div class="bet-panel">
+              <h3>Your bets</h3>
+              <p class="your-points">Balance: <strong id="your-points">0</strong> pts</p>
+              <p class="bet-limits" id="bet-limits"></p>
+              <div id="your-bets-list" class="your-bets-list"></div>
+              <div id="bet-grid" class="bet-grid"></div>
+              <div class="bet-input">
+                <label>Amount</label>
+                <input type="number" id="bet-amount" min="1" placeholder="Points" />
+              </div>
+              <p id="bet-preview" class="bet-preview"></p>
+              <button type="button" id="btn-place-bet" class="btn btn-primary" disabled>Place number bet</button>
+              <div class="side-bets">
+                <h4>Side bets</h4>
+                <p class="side-bets-hint">Enter amount below, then click a side bet.</p>
+                <div class="bet-input">
+                  <label>Side bet amount</label>
+                  <input type="number" id="side-bet-amount" min="1" placeholder="Points" />
+                </div>
+                <div id="side-bets-grid" class="side-bets-grid"></div>
+              </div>
+            </div>
+            <div class="chat-panel">
+              <h3>Chat</h3>
+              <div id="chat-messages" class="chat-messages"></div>
+              <div class="chat-input-row">
+                <input type="text" id="chat-input" placeholder="Type a message..." maxlength="300" />
+                <button type="button" id="btn-chat-send" class="btn btn-ghost">Send</button>
+              </div>
+              <div class="reaction-buttons">
+                <button type="button" class="btn-emoji" data-emoji="👍">👍</button>
+                <button type="button" class="btn-emoji" data-emoji="👎">👎</button>
+                <button type="button" class="btn-emoji" data-emoji="🎲">🎲</button>
+                <button type="button" class="btn-emoji" data-emoji="🔥">🔥</button>
+                <button type="button" class="btn-emoji" data-emoji="😱">😱</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="sounds.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
