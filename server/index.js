@@ -10,7 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// API routes before static so /api/* is never served as files
+// API routes
 app.get('/api/payouts', (req, res) => {
   const payouts = [];
   for (let n = 2; n <= 12; n++) {
@@ -172,12 +172,15 @@ io.on('connection', (socket) => {
   });
 
   socket.on('start-game', (code) => {
-    const room = rooms.getRoom(code);
+    let room = rooms.getRoom(code); 
     if (!room || room.hostId !== socket.playerId) return socket.emit('error', { message: 'Only host can start' });
     const result = rooms.startGame(code);
     if (!result.ok) return socket.emit('error', { message: result.error });
-    const room = result.room;
+    
+    // Updated variable assignment without re-declaring 'const'
+    room = result.room;
     room.roundEndsAt = room.settings.useTimer ? Date.now() + room.settings.roundTimerSec * 1000 : null;
+    
     io.to(code).emit('game-started', {
       phase: 'betting',
       roundNumber: room.roundNumber,
@@ -296,10 +299,10 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 8000; // Koyeb likes 8000 or 3000
+const PORT = process.env.PORT || 8000;
 
 server.listen(PORT, () => {
-    console.log(`DiceEdge running on port ${PORT}`);
+  console.log(`DiceEdge running on port ${PORT}`);
 });
 
 module.exports = server;
